@@ -55,4 +55,7 @@ dependencies {
 
     //RecyclerView
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
+
+    //Cicerone
+    implementation 'com.github.terrakok:cicerone:6.6'
 }
