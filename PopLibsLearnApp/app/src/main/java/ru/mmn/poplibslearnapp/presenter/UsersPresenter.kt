@@ -9,7 +9,11 @@ import ru.mmn.poplibslearnapp.view.IUserItemView
 import ru.mmn.poplibslearnapp.view.IUserListPresenter
 import ru.mmn.poplibslearnapp.view.IUsersView
 
-class UsersPresenter(val usersRepo: GithubUsersRepo, val router: Router, val screens: IScreens) : MvpPresenter<IUsersView>() {
+class UsersPresenter(
+    private val usersRepo: GithubUsersRepo,
+    private val router: Router,
+    private val screens: IScreens
+) : MvpPresenter<IUsersView>() {
     class UsersListPresenter : IUserListPresenter {
         val users = mutableListOf<GithubUser>()
         override var itemClickListener: ((IUserItemView) -> Unit)? = null
@@ -35,7 +39,7 @@ class UsersPresenter(val usersRepo: GithubUsersRepo, val router: Router, val scr
         }
     }
 
-    fun loadData() {
+    private fun loadData() {
         val users = usersRepo.getUsers()
         usersListPresenter.users.addAll(users)
         viewState.updateList()

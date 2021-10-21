@@ -11,7 +11,7 @@ import ru.mmn.poplibslearnapp.presenter.MainPresenter
 
 class MainActivity : MvpAppCompatActivity(), IMainView {
 
-    val navigator = AppNavigator(this, R.id.container)
+    private val navigator = AppNavigator(this, R.id.container)
 
     private val presenter by moxyPresenter { MainPresenter(App.instance.router, AndroidScreens()) }
     private var vb: ActivityMainBinding? = null
@@ -34,7 +34,7 @@ class MainActivity : MvpAppCompatActivity(), IMainView {
 
     override fun onBackPressed() {
         supportFragmentManager.fragments.forEach {
-            if(it is BackButtonListener && it.backPressed()){
+            if (it is BackButtonListener && it.backPressed()) {
                 return
             }
         }

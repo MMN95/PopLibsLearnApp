@@ -5,7 +5,8 @@ import moxy.MvpPresenter
 import ru.mmn.poplibslearnapp.view.IMainView
 import ru.mmn.poplibslearnapp.view.IScreens
 
-class MainPresenter(val router: Router, val screens: IScreens) : MvpPresenter<IMainView>() {
+class MainPresenter(private val router: Router, private val screens: IScreens) :
+    MvpPresenter<IMainView>() {
 
     override fun onFirstViewAttach() {
         super.onFirstViewAttach()
