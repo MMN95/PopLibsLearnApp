@@ -4,11 +4,12 @@ import com.github.terrakok.cicerone.Router
 import moxy.MvpPresenter
 import ru.mmn.poplibslearnapp.model.GithubUser
 import ru.mmn.poplibslearnapp.model.GithubUsersRepo
+import ru.mmn.poplibslearnapp.view.IScreens
 import ru.mmn.poplibslearnapp.view.IUserItemView
 import ru.mmn.poplibslearnapp.view.IUserListPresenter
 import ru.mmn.poplibslearnapp.view.IUsersView
 
-class UsersPresenter(val usersRepo: GithubUsersRepo, val router: Router) : MvpPresenter<IUsersView>() {
+class UsersPresenter(val usersRepo: GithubUsersRepo, val router: Router, val screens: IScreens) : MvpPresenter<IUsersView>() {
     class UsersListPresenter : IUserListPresenter {
         val users = mutableListOf<GithubUser>()
         override var itemClickListener: ((IUserItemView) -> Unit)? = null
@@ -29,7 +30,8 @@ class UsersPresenter(val usersRepo: GithubUsersRepo, val router: Router) : MvpPr
         loadData()
 
         usersListPresenter.itemClickListener = { itemView ->
-            //TODO: переход на экран пользователя c помощью router.navigateTo
+            val user = usersListPresenter.users[itemView.pos]
+            router.navigateTo(screens.user(user))
         }
     }
 

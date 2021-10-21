@@ -13,13 +13,15 @@ import ru.mmn.poplibslearnapp.model.GithubUsersRepo
 import ru.mmn.poplibslearnapp.presenter.UsersPresenter
 
 class UsersFragment : MvpAppCompatFragment(), IUsersView, BackButtonListener {
+
     companion object {
         fun newInstance() = UsersFragment()
     }
 
-    val presenter: UsersPresenter by moxyPresenter { UsersPresenter(GithubUsersRepo(), App.instance.router) }
-    var adapter: UsersRVAdapter? = null
-
+    private val presenter: UsersPresenter by moxyPresenter {
+        UsersPresenter(GithubUsersRepo(), App.instance.router, AndroidScreens())
+    }
+    private var adapter: UsersRVAdapter? = null
     private var vb: FragmentUsersBinding? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
