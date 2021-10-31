@@ -1,6 +1,7 @@
 package ru.mmn.poplibslearnapp.presenter
 
 import com.github.terrakok.cicerone.Router
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import moxy.MvpPresenter
 import ru.mmn.poplibslearnapp.model.GithubUser
 import ru.mmn.poplibslearnapp.model.GithubUsersRepo
@@ -26,6 +27,7 @@ class UsersPresenter(
         }
     }
 
+    private val compositeDisposable = CompositeDisposable()
     val usersListPresenter = UsersListPresenter()
 
     override fun onFirstViewAttach() {
@@ -40,14 +42,23 @@ class UsersPresenter(
     }
 
     private fun loadData() {
-        val users = usersRepo.getUsers()
-        usersListPresenter.users.addAll(users)
+        compositeDisposable.add(
+            usersRepo.getUsers()
+                .subscribe { users ->
+                    usersListPresenter.users.addAll(users)
+                }
+        )
         viewState.updateList()
     }
 
     fun backPressed(): Boolean {
         router.exit()
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.dispose()
     }
 
 }
