@@ -1,17 +1,19 @@
 package ru.mmn.poplibslearnapp.presenter
 
 import com.github.terrakok.cicerone.Router
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.core.Scheduler
 import moxy.MvpPresenter
 import ru.mmn.poplibslearnapp.model.GithubUser
-import ru.mmn.poplibslearnapp.model.GithubUsersRepo
+import ru.mmn.poplibslearnapp.model.IGithubUsersRepo
 import ru.mmn.poplibslearnapp.view.IScreens
 import ru.mmn.poplibslearnapp.view.IUserItemView
 import ru.mmn.poplibslearnapp.view.IUserListPresenter
 import ru.mmn.poplibslearnapp.view.IUsersView
 
+
 class UsersPresenter(
-    private val usersRepo: GithubUsersRepo,
+    private val uiScheduler: Scheduler,
+    private val usersRepo: IGithubUsersRepo,
     private val router: Router,
     private val screens: IScreens
 ) : MvpPresenter<IUsersView>() {
@@ -23,11 +25,10 @@ class UsersPresenter(
 
         override fun bindView(view: IUserItemView) {
             val user = users[view.pos]
-            view.setLogin(user.login)
+            user.login.let { view.setLogin(it) }
         }
     }
 
-    private val compositeDisposable = CompositeDisposable()
     val usersListPresenter = UsersListPresenter()
 
     override fun onFirstViewAttach() {
@@ -42,23 +43,19 @@ class UsersPresenter(
     }
 
     private fun loadData() {
-        compositeDisposable.add(
-            usersRepo.getUsers()
-                .subscribe { users ->
-                    usersListPresenter.users.addAll(users)
-                }
-        )
-        viewState.updateList()
+        usersRepo.getUsers()
+            .observeOn(uiScheduler)
+            .subscribe({ repos ->
+                usersListPresenter.users.clear()
+                usersListPresenter.users.addAll(repos)
+                viewState.updateList()
+            }, {
+                println("Error: ${it.message}")
+            })
     }
 
     fun backPressed(): Boolean {
         router.exit()
         return true
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-    }
-
 }

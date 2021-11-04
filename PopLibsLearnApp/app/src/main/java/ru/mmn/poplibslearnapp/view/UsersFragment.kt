@@ -6,13 +6,15 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import moxy.MvpAppCompatFragment
 import moxy.ktx.moxyPresenter
 import ru.mmn.poplibslearnapp.App
 import ru.mmn.poplibslearnapp.R
 import ru.mmn.poplibslearnapp.adapter.UsersRVAdapter
 import ru.mmn.poplibslearnapp.databinding.FragmentUsersBinding
-import ru.mmn.poplibslearnapp.model.GithubUsersRepo
+import ru.mmn.poplibslearnapp.model.ApiHolder
+import ru.mmn.poplibslearnapp.model.RetrofitGithubUsersRepo
 import ru.mmn.poplibslearnapp.presenter.UsersPresenter
 
 class UsersFragment : MvpAppCompatFragment(R.layout.fragment_users), IUsersView,
@@ -23,7 +25,12 @@ class UsersFragment : MvpAppCompatFragment(R.layout.fragment_users), IUsersView,
     }
 
     private val presenter: UsersPresenter by moxyPresenter {
-        UsersPresenter(GithubUsersRepo(), App.instance.router, AndroidScreens())
+        UsersPresenter(
+            AndroidSchedulers.mainThread(),
+            RetrofitGithubUsersRepo(ApiHolder.api),
+            App.instance.router,
+            AndroidScreens()
+        )
     }
     private var adapter: UsersRVAdapter? = null
     private var binding: FragmentUsersBinding? = null
