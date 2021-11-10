@@ -14,6 +14,7 @@ import ru.mmn.poplibslearnapp.R
 import ru.mmn.poplibslearnapp.adapter.UsersRVAdapter
 import ru.mmn.poplibslearnapp.databinding.FragmentUsersBinding
 import ru.mmn.poplibslearnapp.model.ApiHolder
+import ru.mmn.poplibslearnapp.model.GlideImageLoader
 import ru.mmn.poplibslearnapp.model.RetrofitGithubUsersRepo
 import ru.mmn.poplibslearnapp.presenter.UsersPresenter
 
@@ -51,7 +52,7 @@ class UsersFragment : MvpAppCompatFragment(R.layout.fragment_users), IUsersView,
 
     override fun init() {
         binding?.rvUsers?.layoutManager = LinearLayoutManager(context)
-        adapter = UsersRVAdapter(presenter.usersListPresenter)
+        adapter = UsersRVAdapter(presenter.usersListPresenter, GlideImageLoader())
         binding?.rvUsers?.adapter = adapter
     }
 
