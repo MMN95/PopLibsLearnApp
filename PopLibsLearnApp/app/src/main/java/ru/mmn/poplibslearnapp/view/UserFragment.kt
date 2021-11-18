@@ -3,48 +3,68 @@ package ru.mmn.poplibslearnapp.view
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
-import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.terrakok.cicerone.Router
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import moxy.MvpAppCompatFragment
 import moxy.ktx.moxyPresenter
 import ru.mmn.poplibslearnapp.App
-import ru.mmn.poplibslearnapp.R
 import ru.mmn.poplibslearnapp.databinding.FragmentUserBinding
+import ru.mmn.poplibslearnapp.model.ApiHolder
 import ru.mmn.poplibslearnapp.model.GithubUser
 import ru.mmn.poplibslearnapp.presenter.UserPresenter
+import javax.inject.Inject
 
-class UserFragment : MvpAppCompatFragment(R.layout.fragment_user), IUserView, BackButtonListener {
+class UserFragment : MvpAppCompatFragment(), IUserView, BackButtonListener {
+
+    @Inject
+    lateinit var database: Database
+    @Inject lateinit var router: Router
 
     companion object {
-        private const val USER = "USER"
-        fun newInstance(user: GithubUser): Fragment = UserFragment().apply {
-            arguments = bundleOf().apply {
-                putParcelable(USER, user)
+        private const val USER_ARG = "user"
+
+        fun newInstance(user: GithubUser) = UserFragment().apply {
+            arguments = Bundle().apply {
+                putParcelable(USER_ARG, user)
             }
+            App.instance.appComponent.inject(this)
         }
     }
 
-    private var binding: FragmentUserBinding? = null
-    private val presenter: UserPresenter by moxyPresenter {
-        val user = arguments?.getParcelable<GithubUser>(USER) as GithubUser
-        UserPresenter(App.instance.router, user)
+    val presenter: UserPresenter by moxyPresenter {
+        val user = arguments?.getParcelable<GithubUser>(USER_ARG) as GithubUser
+        UserPresenter(
+            AndroidSchedulers.mainThread(),
+            RetrofitGithubRepositoriesRepo(ApiHolder.api, AndroidNetworkStatus(App.instance), RoomGithubRepositoriesCache(database)),
+            router,
+            user,
+            AndroidScreens()
+        )
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = FragmentUserBinding.inflate(inflater, container, false).also {
-        binding = it
-    }.root
+    private var vb: FragmentUserBinding? = null
 
-    override fun setLogin(text: String) {
-        binding?.userLogin?.text = text
-    }
+    var adapter: ReposotoriesRVAdapter? = null
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
+        FragmentUserBinding.inflate(inflater, container, false).also {
+            vb = it
+        }.root
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        vb = null
+    }
+
+    override fun init() {
+        vb?.rvRepositories?.layoutManager = LinearLayoutManager(context)
+        adapter = ReposotoriesRVAdapter(presenter.repositoriesListPresenter)
+        vb?.rvRepositories?.adapter = adapter
+    }
+
+    override fun updateList() {
+        adapter?.notifyDataSetChanged()
     }
 
     override fun backPressed() = presenter.backPressed()
