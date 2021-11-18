@@ -1,66 +1,61 @@
 package ru.mmn.poplibslearnapp.view
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import moxy.MvpAppCompatFragment
 import moxy.ktx.moxyPresenter
 import ru.mmn.poplibslearnapp.App
-import ru.mmn.poplibslearnapp.R
 import ru.mmn.poplibslearnapp.adapter.UsersRVAdapter
 import ru.mmn.poplibslearnapp.databinding.FragmentUsersBinding
-import ru.mmn.poplibslearnapp.model.ApiHolder
 import ru.mmn.poplibslearnapp.model.GlideImageLoader
-import ru.mmn.poplibslearnapp.model.RetrofitGithubUsersRepo
 import ru.mmn.poplibslearnapp.presenter.UsersPresenter
+import javax.inject.Inject
 
-class UsersFragment : MvpAppCompatFragment(R.layout.fragment_users), IUsersView,
-    BackButtonListener {
+class UsersFragment : MvpAppCompatFragment(), IUsersView, BackButtonListener {
 
     companion object {
-        fun newInstance(): Fragment = UsersFragment()
+        fun newInstance() = UsersFragment().apply {
+            App.instance.appComponent.inject(this)
+        }
     }
 
-    private val presenter: UsersPresenter by moxyPresenter {
-        UsersPresenter(
-            AndroidSchedulers.mainThread(),
-            RetrofitGithubUsersRepo(ApiHolder.api),
-            App.instance.router,
-            AndroidScreens()
-        )
-    }
-    private var adapter: UsersRVAdapter? = null
-    private var binding: FragmentUsersBinding? = null
+    @Inject
+    lateinit var database: Database
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) =
+    val presenter: UsersPresenter by moxyPresenter {
+        UsersPresenter(AndroidSchedulers.mainThread()).apply {
+            App.instance.appComponent.inject(this)
+        }
+    }
+
+    var adapter: UsersRVAdapter? = null
+    private var vb: FragmentUsersBinding? = null
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
         FragmentUsersBinding.inflate(inflater, container, false).also {
-            binding = it
+            vb = it
         }.root
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        vb = null
     }
 
     override fun init() {
-        binding?.rvUsers?.layoutManager = LinearLayoutManager(context)
-        adapter = UsersRVAdapter(presenter.usersListPresenter, GlideImageLoader())
-        binding?.rvUsers?.adapter = adapter
+        vb?.rvUsers?.layoutManager = LinearLayoutManager(context)
+        adapter = UsersRVAdapter(
+            presenter.usersListPresenter,
+            GlideImageLoader(RoomImageCache(database, App.instance.cacheDir), AndroidNetworkStatus(requireContext()))
+        )
+        vb?.rvUsers?.adapter = adapter
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun updateList() {
         adapter?.notifyDataSetChanged()
     }
 
     override fun backPressed() = presenter.backPressed()
 }
-

@@ -9,14 +9,14 @@ import ru.mmn.poplibslearnapp.view.IScreens
 import ru.mmn.poplibslearnapp.view.IUserItemView
 import ru.mmn.poplibslearnapp.view.IUserListPresenter
 import ru.mmn.poplibslearnapp.view.IUsersView
+import javax.inject.Inject
 
+class UsersPresenter(val uiScheduler: Scheduler) : MvpPresenter<IUsersView>() {
 
-class UsersPresenter(
-    private val uiScheduler: Scheduler,
-    private val usersRepo: IGithubUsersRepo,
-    private val router: Router,
-    private val screens: IScreens
-) : MvpPresenter<IUsersView>() {
+    @Inject lateinit var usersRepo: IGithubUsersRepo
+    @Inject lateinit var router: Router
+    @Inject lateinit var screens: IScreens
+
     class UsersListPresenter : IUserListPresenter {
         val users = mutableListOf<GithubUser>()
         override var itemClickListener: ((IUserItemView) -> Unit)? = null
@@ -25,8 +25,8 @@ class UsersPresenter(
 
         override fun bindView(view: IUserItemView) {
             val user = users[view.pos]
-            user.login.let { view.setLogin(it) }
-            user.avatarUrl?.let { view.loadAvatar(it) }
+            user.login?.let { view.setLogin(it) }
+            user.avatarUrl?.let {view.loadAvatar(it)}
         }
     }
 
@@ -43,7 +43,7 @@ class UsersPresenter(
         }
     }
 
-    private fun loadData() {
+    fun loadData() {
         usersRepo.getUsers()
             .observeOn(uiScheduler)
             .subscribe({ repos ->
@@ -60,3 +60,4 @@ class UsersPresenter(
         return true
     }
 }
+
